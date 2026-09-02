@@ -610,7 +610,13 @@
         <div>Total salary <b id="totalSalary">—</b></div>
       </div>
     </div>
-    <div class="card-details" style="display: flex; justify-content: center; gap: 15px; flex-direction: row-reverse;">
+    <div class="card-details" style="display: flex; justify-content: center; gap: 15px;">
+      <div class="card">
+        <h2>Recent entries</h2>
+        <div id="log">
+          <div class="empty">Loading…</div>
+        </div>
+      </div>
       <div class="card">
         <h2 id="formTitle">Log today's deliveries</h2>
         <div class="edit-banner" id="editBanner" style="display: none">
@@ -635,13 +641,6 @@
           </button>
           <div class="status" id="status"></div>
         </form>
-      </div>
-
-      <div class="card">
-        <h2>Recent entries</h2>
-        <div id="log">
-          <div class="empty">Loading…</div>
-        </div>
       </div>
     </div>
   </div>
