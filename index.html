@@ -409,7 +409,7 @@
       .top-salary {
         flex-direction: row-reverse;
         flex-wrap: wrap;
-        justify-content: flex-end;
+        justify-content: space-between;
         gap: 30px;
       }
 
@@ -932,6 +932,16 @@
       color: #e8735d;
       min-height: 16px;
       margin: -4px 0 8px;
+    }
+
+    @media screen and (max-width: 767px) {
+      .wrap {
+        padding: 20px 8px 20px;
+      }
+
+      .card {
+        padding: 15px 12px;
+      }
     }
   </style>
 </head>
