@@ -84,10 +84,11 @@
 
     .odometer .label,
     .balance-salary {
-      font-size: 12px;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      color: #ffffff;
+      text-transform: capitalize;
+      font-family: "Archivo", sans-serif;
+      font-weight: 600;
+      font-size: 15px;
     }
 
     .odometer .value,
@@ -127,6 +128,7 @@
       display: flex;
       /* align-items: center; */
       flex-direction: column;
+      gap: 10px;
     }
 
     .top-salary {
@@ -600,10 +602,10 @@
     <div class="odometer">
       <div class="top-salary">
         <div class="">
-          <div class="label">Deliveries pending salary</div>
-          <div class="value" id="totalDelivery">—</div>
+          <div class="label">Deliveries Count</div>
+          <div class="value" id="totalDelivery" style="padding-top: 10px;">—</div>
         </div>
-        <div class="balance-salary">Balance <b id="balance">—</b></div>
+        <div class="balance-salary">Salary Balance <b id="balance">—</b></div>
       </div>
       <div class="subrow">
         <div>Total deliveries <b id="overallTotal">—</b></div>
