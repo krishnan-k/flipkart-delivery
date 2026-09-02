@@ -485,7 +485,7 @@
       right: 12px;
       height: 3px;
       border-radius: 3px;
-      background: var(--red);
+      background: #a31717;
       box-shadow: 0 0 10px 1px rgba(173, 22, 22, 0.6);
       opacity: 0.9;
     }
@@ -497,7 +497,7 @@
 
     .entry-card:hover {
       transform: translateY(-3px);
-      border-color: var(--yellow);
+      border-color: #a31717;
       box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
     }
 
@@ -570,11 +570,14 @@
       text-transform: uppercase;
       letter-spacing: 0.07em;
       margin-bottom: 6px;
+      text-align: left;
+      padding-left: 8px;
+      padding-bottom: 3px;
     }
 
     .entry-card .card-middle {
       display: flex;
-      align-items: center;
+      align-items: end;
       justify-content: space-between;
       gap: 10px;
       margin: 20px 0 16px;
@@ -593,11 +596,9 @@
       height: 42px;
       border-radius: 50%;
       border: 1px solid rgba(242, 183, 5, 0.4);
-      background: radial-gradient(
-        circle,
-        rgba(242, 183, 5, 0.12),
-        transparent 70%
-      );
+      background: radial-gradient(circle,
+          rgba(242, 183, 5, 0.12),
+          transparent 70%);
       box-shadow: inset 0 0 14px rgba(242, 183, 5, 0.2);
       display: flex;
       align-items: center;
@@ -1173,7 +1174,7 @@
     `
                 : "";
               return `
-      <div class="entry-card ${isYes ? "paid" : ""}">
+      <div class="entry-card ${isYes ? "paid" : "no-salary"}">
         <div class="card-header">
           <div class="card-date-block">
             <div class="card-date-icon">${ICONS.calendar}</div>
