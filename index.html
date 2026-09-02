@@ -582,6 +582,144 @@
       width: 14px;
       height: 14px;
     }
+
+    /* Admin lock control */
+    .route {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .admin-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      color: var(--text-dim);
+      border-radius: 20px;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-family: "IBM Plex Sans", sans-serif;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .admin-btn:hover {
+      color: var(--text);
+      border-color: var(--text-dim);
+    }
+
+    .admin-btn.unlocked {
+      color: var(--road);
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .admin-btn svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    /* View-only card layout when not in admin mode */
+    body:not(.is-admin) #adminCard {
+      display: none;
+    }
+
+    body:not(.is-admin) .card-details {
+      justify-content: stretch;
+    }
+
+    body:not(.is-admin) .card-details .card:first-child {
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Passcode modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 20px;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--panel-raised);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 22px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .modal-box h3 {
+      margin: 0 0 6px;
+      font-family: "Archivo", sans-serif;
+      font-size: 16px;
+    }
+
+    .modal-box p {
+      margin: 0 0 14px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .modal-box input[type="password"] {
+      width: 100%;
+      background: var(--road);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: "IBM Plex Sans", sans-serif;
+      font-size: 16px;
+      padding: 11px 12px;
+      margin-bottom: 10px;
+    }
+
+    .modal-box input[type="password"]:focus {
+      outline: none;
+      border-color: var(--yellow);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .modal-actions button {
+      flex: 1;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 13px;
+      font-family: "IBM Plex Sans", sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--text);
+    }
+
+    .modal-actions button.primary {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: #fff;
+    }
+
+    .modal-error {
+      font-size: 12px;
+      color: #e8735d;
+      min-height: 16px;
+      margin: -4px 0 8px;
+    }
   </style>
 </head>
 
@@ -589,7 +727,17 @@
   <div class="wrap">
     <header>
       <h1>Delivery Log</h1>
-      <span class="route">Flipkart</span>
+      <span class="route">
+        Flipkart
+        <button type="button" class="admin-btn" id="adminBtn">
+          <svg id="adminLockIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span id="adminBtnLabel">Admin</span>
+        </button>
+      </span>
     </header>
 
     <div id="configWarning" class="config-warning" style="display: none">
@@ -619,7 +767,7 @@
           <div class="empty">Loading…</div>
         </div>
       </div>
-      <div class="card">
+      <div class="card" id="adminCard">
         <h2 id="formTitle">Log today's deliveries</h2>
         <div class="edit-banner" id="editBanner" style="display: none">
           <span>Editing an existing entry</span>
@@ -647,10 +795,23 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="adminModal">
+    <div class="modal-box">
+      <h3 id="adminModalTitle">Admin login</h3>
+      <p id="adminModalSubtitle">Enter your passcode to add, edit, or delete entries. Everyone else can only view.</p>
+      <input type="password" id="adminPasscodeInput" placeholder="Passcode" autocomplete="current-password" />
+      <div class="modal-error" id="adminModalError"></div>
+      <div class="modal-actions">
+        <button type="button" id="adminModalCancel">Cancel</button>
+        <button type="button" id="adminModalSubmit" class="primary">Unlock</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Paste the Web App URL you get from Deploy → New deployment in Apps Script.
     const SCRIPT_URL =
-      "https://script.google.com/macros/s/AKfycbxAMsnDMAOJmQGIDESE2UdFlYIAVauTygYiwh6EFals5R3t84-HoK317JE7p3B0EBrl/exec";
+      "https://script.google.com/macros/s/AKfycbwebjwdIUWsxZMa4lGy8-sXK06BS4GxE3VG4qSr-slyFxDx1WSgyJPerJEv006yLHql/exec";
 
     const dateInput = document.getElementById("date");
     const countInput = document.getElementById("count");
@@ -668,8 +829,117 @@
     const editBanner = document.getElementById("editBanner");
     const cancelEditBtn = document.getElementById("cancelEdit");
 
+    const adminBtn = document.getElementById("adminBtn");
+    const adminBtnLabel = document.getElementById("adminBtnLabel");
+    const adminModal = document.getElementById("adminModal");
+    const adminPasscodeInput = document.getElementById("adminPasscodeInput");
+    const adminModalError = document.getElementById("adminModalError");
+    const adminModalCancel = document.getElementById("adminModalCancel");
+    const adminModalSubmit = document.getElementById("adminModalSubmit");
+
     let editingRow = null;
     let currentRecords = [];
+    let lastData = null;
+
+    // Admin mode is only remembered for this browser tab/session — closing
+    // the tab logs you out. The passcode itself is only ever kept in memory
+    // for this session and is verified by the server on every write.
+    let isAdmin = sessionStorage.getItem("isAdmin") === "true";
+    let adminPasscode = sessionStorage.getItem("adminPasscode") || "";
+
+    function applyAdminUI() {
+      document.body.classList.toggle("is-admin", isAdmin);
+      adminBtn.classList.toggle("unlocked", isAdmin);
+      adminBtnLabel.textContent = isAdmin ? "Admin mode" : "Admin";
+      adminBtn.title = isAdmin ? "Admin mode — click to log out" : "Click to unlock admin mode";
+      if (lastData) render(lastData);
+    }
+
+    function openAdminModal() {
+      adminModalError.textContent = "";
+      adminPasscodeInput.value = "";
+      adminModal.classList.add("open");
+      setTimeout(() => adminPasscodeInput.focus(), 50);
+    }
+
+    function closeAdminModal() {
+      adminModal.classList.remove("open");
+    }
+
+    adminBtn.addEventListener("click", () => {
+      if (isAdmin) {
+        isAdmin = false;
+        adminPasscode = "";
+        sessionStorage.removeItem("isAdmin");
+        sessionStorage.removeItem("adminPasscode");
+        applyAdminUI();
+        exitEditMode();
+      } else {
+        openAdminModal();
+      }
+    });
+
+    adminModalCancel.addEventListener("click", closeAdminModal);
+    adminModal.addEventListener("click", (e) => {
+      if (e.target === adminModal) closeAdminModal();
+    });
+
+    async function submitAdminPasscode() {
+      const passcode = adminPasscodeInput.value;
+      if (!passcode) {
+        adminModalError.textContent = "Enter a passcode.";
+        return;
+      }
+      if (!SCRIPT_URL || SCRIPT_URL.indexOf("PASTE_YOUR") === 0) {
+        adminModalError.textContent = "Connect the sheet first.";
+        return;
+      }
+      adminModalSubmit.disabled = true;
+      adminModalError.textContent = "";
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "verify", passcode }),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          isAdmin = true;
+          adminPasscode = passcode;
+          sessionStorage.setItem("isAdmin", "true");
+          sessionStorage.setItem("adminPasscode", passcode);
+          applyAdminUI();
+          closeAdminModal();
+        } else {
+          adminModalError.textContent = data.error || "Incorrect passcode.";
+        }
+      } catch (err) {
+        adminModalError.textContent = "Could not verify — check your connection.";
+      } finally {
+        adminModalSubmit.disabled = false;
+      }
+    }
+
+    adminModalSubmit.addEventListener("click", submitAdminPasscode);
+    adminPasscodeInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        submitAdminPasscode();
+      }
+    });
+
+    function forceAdminLogout(message) {
+      isAdmin = false;
+      adminPasscode = "";
+      sessionStorage.removeItem("isAdmin");
+      sessionStorage.removeItem("adminPasscode");
+      applyAdminUI();
+      exitEditMode();
+      if (message) {
+        statusEl.textContent = message;
+        statusEl.className = "status error";
+      }
+    }
 
     function todayISO() {
       const d = new Date();
@@ -694,6 +964,7 @@
     }
 
     function render(data) {
+      lastData = data;
       const totals = data.totals || {};
       currentRecords = data.records || [];
 
@@ -744,6 +1015,20 @@
           const items = group.records
             .map((r) => {
               const isYes = String(r.salary).toLowerCase() === "yes";
+              const footer = isAdmin
+                ? `
+        <div class="card-footer">
+          <div class="icon-actions">
+            <button type="button" class="icon-btn edit" data-row="${r.row}" title="Edit" aria-label="Edit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            </button>
+            <button type="button" class="icon-btn delete" data-row="${r.row}" title="Delete" aria-label="Delete">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            </button>
+          </div>
+        </div>
+    `
+                : "";
               return `
       <div class="entry-card ${isYes ? "paid" : ""}">
         <div class="card-top">
@@ -755,16 +1040,7 @@
         </div>
         <div class="card-count">${r.count}</div>
         <div class="card-count-label">deliveries</div>
-        <div class="card-footer">
-          <div class="icon-actions">
-            <button type="button" class="icon-btn edit" data-row="${r.row}" title="Edit" aria-label="Edit">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-            </button>
-            <button type="button" class="icon-btn delete" data-row="${r.row}" title="Delete" aria-label="Delete">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-            </button>
-          </div>
-        </div>
+        ${footer}
       </div>
     `;
             })
@@ -818,6 +1094,7 @@
       const deleteBtn = e.target.closest("button.delete");
 
       if (editBtn) {
+        if (!isAdmin) return;
         const row = Number(editBtn.dataset.row);
         const record = currentRecords.find((r) => r.row === row);
         if (record) enterEditMode(record);
@@ -825,6 +1102,7 @@
       }
 
       if (deleteBtn) {
+        if (!isAdmin) return;
         if (!SCRIPT_URL || SCRIPT_URL.indexOf("PASTE_YOUR") === 0) {
           configWarning.style.display = "block";
           return;
@@ -836,12 +1114,16 @@
           const res = await fetch(SCRIPT_URL, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "delete", row }),
+            body: JSON.stringify({ action: "delete", row, passcode: adminPasscode }),
           });
           const data = await res.json();
           if (data.error) {
-            statusEl.textContent = data.error;
-            statusEl.className = "status error";
+            if (data.error.indexOf("Not authorized") === 0) {
+              forceAdminLogout("Your admin session expired. Please log in again.");
+            } else {
+              statusEl.textContent = data.error;
+              statusEl.className = "status error";
+            }
           } else {
             if (editingRow === row) exitEditMode();
             render(data);
@@ -876,6 +1158,7 @@
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (!isAdmin) return;
       if (!SCRIPT_URL || SCRIPT_URL.indexOf("PASTE_YOUR") === 0) {
         configWarning.style.display = "block";
         return;
@@ -889,6 +1172,7 @@
         date: dateInput.value,
         count: countInput.value,
         salary: salaryToggle.classList.contains("on"),
+        passcode: adminPasscode,
       };
       if (editingRow) payload.row = editingRow;
 
@@ -900,8 +1184,12 @@
         });
         const data = await res.json();
         if (data.error) {
-          statusEl.textContent = data.error;
-          statusEl.className = "status error";
+          if (data.error.indexOf("Not authorized") === 0) {
+            forceAdminLogout("Your admin session expired. Please log in again.");
+          } else {
+            statusEl.textContent = data.error;
+            statusEl.className = "status error";
+          }
         } else {
           const wasEditing = Boolean(editingRow);
           render(data);
@@ -919,6 +1207,7 @@
       }
     });
 
+    applyAdminUI();
     loadData();
   </script>
 </body>
