@@ -73,13 +73,15 @@
         width: 6px;
         background: var(--yellow);
       }
-      .odometer .label {
+      .odometer .label,
+      .balance-salary {
         font-size: 12px;
         color: var(--text-dim);
         text-transform: uppercase;
         letter-spacing: 0.08em;
       }
-      .odometer .value {
+      .odometer .value,
+      #balance {
         font-family: "Archivo", sans-serif;
         font-weight: 900;
         font-size: 56px;
@@ -89,7 +91,8 @@
       }
       .subrow {
         display: flex;
-        gap: 20px;
+        flex-wrap: wrap;
+        gap: 10px 20px;
         margin-top: 14px;
         font-size: 13px;
         color: var(--text-dim);
@@ -106,6 +109,17 @@
         padding: 20px;
         margin-bottom: 16px;
         width: 100%;
+      }
+      .balance-salary {
+        display: flex;
+        /* align-items: center; */
+        flex-direction: column;
+      }
+      .top-salary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-direction: row-reverse;
       }
       .card h2 {
         font-family: "Archivo", sans-serif;
@@ -265,6 +279,63 @@
         padding: 20px 0;
       }
 
+      .log-item {
+        gap: 10px;
+      }
+      .log-item .meta {
+        flex: 1;
+        min-width: 0;
+      }
+      .log-item .right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .row-actions {
+        display: flex;
+        gap: 6px;
+      }
+      .row-actions button {
+        background: none;
+        border: 1px solid var(--line);
+        color: var(--text-dim);
+        border-radius: 6px;
+        font-size: 11px;
+        padding: 4px 8px;
+        cursor: pointer;
+        font-family: "IBM Plex Sans", sans-serif;
+      }
+      .row-actions button:hover {
+        color: var(--text);
+        border-color: var(--text-dim);
+      }
+      .row-actions button.delete:hover {
+        color: var(--orange);
+        border-color: var(--orange);
+      }
+
+      .edit-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(242, 183, 5, 0.12);
+        border: 1px solid var(--yellow);
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin-bottom: 14px;
+        font-size: 12px;
+        color: var(--yellow);
+      }
+      .edit-banner button {
+        background: none;
+        border: none;
+        color: var(--text);
+        font-size: 12px;
+        text-decoration: underline;
+        cursor: pointer;
+        font-family: "IBM Plex Sans", sans-serif;
+      }
+
       .config-warning {
         background: rgba(232, 93, 45, 0.12);
         border: 1px solid var(--orange);
@@ -279,6 +350,17 @@
         padding: 1px 5px;
         border-radius: 4px;
         font-size: 12px;
+      }
+      @media screen and (max-width: 767px) {
+        .top-salary {
+          flex-direction: row-reverse;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+          gap: 30px;
+        }
+        .card-details {
+          flex-wrap: wrap;
+        }
       }
     </style>
   </head>
@@ -297,23 +379,28 @@
       </div>
 
       <div class="odometer">
-        <div class="label">Total deliveries</div>
-        <div class="value" id="totalDelivery">—</div>
+        <div class="top-salary">
+          <div class="">
+            <div class="label">Deliveries pending salary</div>
+            <div class="value" id="totalDelivery">—</div>
+          </div>
+          <div class="balance-salary">Balance <b id="balance">—</b></div>
+        </div>
         <div class="subrow">
+          <div>Total deliveries <b id="overallTotal">—</b></div>
           <div>Total salary <b id="totalSalary">—</b></div>
-          <div>Balance <b id="balance">—</b></div>
         </div>
       </div>
       <div
-        class=""
-        style="
-          display: flex;
-          justify-content: center;
-          gap: 15px;
-        "
+        class="card-details"
+        style="display: flex; justify-content: center; gap: 15px"
       >
         <div class="card">
-          <h2>Log today's deliveries</h2>
+          <h2 id="formTitle">Log today's deliveries</h2>
+          <div class="edit-banner" id="editBanner" style="display: none">
+            <span>Editing an existing entry</span>
+            <button type="button" id="cancelEdit">Cancel</button>
+          </div>
           <form id="entryForm">
             <div class="field">
               <label for="date">Date</label>
@@ -356,7 +443,7 @@
     <script>
       // Paste the Web App URL you get from Deploy → New deployment in Apps Script.
       const SCRIPT_URL =
-        "https://script.google.com/macros/s/AKfycbxOo19DplSlxgWx2QAv4q_Gcfe7-drQzZQdMerZ5UrfF5r1O3RIOAfTMHJQT0FAYcI/exec";
+        "https://script.google.com/macros/s/AKfycbxAMsnDMAOJmQGIDESE2UdFlYIAVauTygYiwh6EFals5R3t84-HoK317JE7p3B0EBrl/exec";
 
       const dateInput = document.getElementById("date");
       const countInput = document.getElementById("count");
@@ -366,9 +453,16 @@
       const statusEl = document.getElementById("status");
       const logEl = document.getElementById("log");
       const totalDeliveryEl = document.getElementById("totalDelivery");
+      const overallTotalEl = document.getElementById("overallTotal");
       const totalSalaryEl = document.getElementById("totalSalary");
       const balanceEl = document.getElementById("balance");
       const configWarning = document.getElementById("configWarning");
+      const formTitle = document.getElementById("formTitle");
+      const editBanner = document.getElementById("editBanner");
+      const cancelEditBtn = document.getElementById("cancelEdit");
+
+      let editingRow = null;
+      let currentRecords = [];
 
       function todayISO() {
         const d = new Date();
@@ -394,12 +488,21 @@
 
       function render(data) {
         const totals = data.totals || {};
-        totalDeliveryEl.textContent = totals.totalDelivery ?? "—";
+        currentRecords = data.records || [];
+
+        const pendingTotal = currentRecords.reduce((sum, r) => {
+          const isYes = String(r.salary).toLowerCase() === "yes";
+          const c = Number(r.count) || 0;
+          return isYes ? sum : sum + c;
+        }, 0);
+
+        totalDeliveryEl.textContent = pendingTotal;
+        overallTotalEl.textContent = totals.totalDelivery ?? "—";
         totalSalaryEl.textContent =
           totals.totalSalary != null ? totals.totalSalary : "—";
         balanceEl.textContent = totals.balance != null ? totals.balance : "—";
 
-        const records = (data.records || []).slice().reverse();
+        const records = currentRecords.slice().reverse();
         if (records.length === 0) {
           logEl.innerHTML =
             '<div class="empty">No entries yet — add your first one above.</div>';
@@ -409,19 +512,98 @@
           .map(
             (r) => `
       <div class="log-item">
-        <div>
+        <div class="meta">
           <div class="date">${formatDateLabel(r.date)}</div>
           <div class="day">${r.day || ""}</div>
         </div>
-        <div>
+        <div class="right">
           <span class="count">${r.count}</span>
           <span class="salary ${String(r.salary).toLowerCase() === "yes" ? "yes" : "no"}">${r.salary}</span>
+          <div class="row-actions">
+            <button type="button" class="edit" data-row="${r.row}">Edit</button>
+            <button type="button" class="delete" data-row="${r.row}">Delete</button>
+          </div>
         </div>
       </div>
     `,
           )
           .join("");
       }
+
+      function enterEditMode(record) {
+        editingRow = record.row;
+        dateInput.value = record.date;
+        countInput.value = record.count;
+        const isYes = String(record.salary).toLowerCase() === "yes";
+        salaryToggle.classList.toggle("on", isYes);
+        salaryToggle.setAttribute("aria-pressed", String(isYes));
+        formTitle.textContent = "Edit delivery entry";
+        editBanner.style.display = "flex";
+        submitBtn.textContent = "Update entry";
+        statusEl.textContent = "";
+        statusEl.className = "status";
+        form.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      function exitEditMode() {
+        editingRow = null;
+        formTitle.textContent = "Log today's deliveries";
+        editBanner.style.display = "none";
+        submitBtn.textContent = "Add entry";
+        countInput.value = "";
+        salaryToggle.classList.remove("on");
+        salaryToggle.setAttribute("aria-pressed", "false");
+        dateInput.value = todayISO();
+      }
+
+      cancelEditBtn.addEventListener("click", () => {
+        exitEditMode();
+        statusEl.textContent = "";
+      });
+
+      logEl.addEventListener("click", async (e) => {
+        const editBtn = e.target.closest("button.edit");
+        const deleteBtn = e.target.closest("button.delete");
+
+        if (editBtn) {
+          const row = Number(editBtn.dataset.row);
+          const record = currentRecords.find((r) => r.row === row);
+          if (record) enterEditMode(record);
+          return;
+        }
+
+        if (deleteBtn) {
+          if (!SCRIPT_URL || SCRIPT_URL.indexOf("PASTE_YOUR") === 0) {
+            configWarning.style.display = "block";
+            return;
+          }
+          const row = Number(deleteBtn.dataset.row);
+          if (!confirm("Delete this delivery entry?")) return;
+          deleteBtn.disabled = true;
+          try {
+            const res = await fetch(SCRIPT_URL, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify({ action: "delete", row }),
+            });
+            const data = await res.json();
+            if (data.error) {
+              statusEl.textContent = data.error;
+              statusEl.className = "status error";
+            } else {
+              if (editingRow === row) exitEditMode();
+              render(data);
+              statusEl.textContent = "Entry deleted.";
+              statusEl.className = "status ok";
+            }
+          } catch (err) {
+            statusEl.textContent = "Could not delete — check your connection.";
+            statusEl.className = "status error";
+          } finally {
+            deleteBtn.disabled = false;
+          }
+        }
+      });
 
       async function loadData() {
         if (!SCRIPT_URL || SCRIPT_URL.indexOf("PASTE_YOUR") === 0) {
@@ -447,14 +629,16 @@
           return;
         }
         submitBtn.disabled = true;
-        statusEl.textContent = "Saving…";
+        statusEl.textContent = editingRow ? "Updating…" : "Saving…";
         statusEl.className = "status";
 
         const payload = {
+          action: editingRow ? "update" : "add",
           date: dateInput.value,
           count: countInput.value,
           salary: salaryToggle.classList.contains("on"),
         };
+        if (editingRow) payload.row = editingRow;
 
         try {
           const res = await fetch(SCRIPT_URL, {
@@ -467,13 +651,13 @@
             statusEl.textContent = data.error;
             statusEl.className = "status error";
           } else {
+            const wasEditing = Boolean(editingRow);
             render(data);
-            statusEl.textContent = "Saved to sheet.";
+            statusEl.textContent = wasEditing
+              ? "Entry updated."
+              : "Saved to sheet.";
             statusEl.className = "status ok";
-            countInput.value = "";
-            salaryToggle.classList.remove("on");
-            salaryToggle.setAttribute("aria-pressed", "false");
-            dateInput.value = todayISO();
+            exitEditMode();
           }
         } catch (err) {
           statusEl.textContent = "Could not save — check your connection.";
