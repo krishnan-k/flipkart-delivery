@@ -603,7 +603,7 @@
 
     .entry-card .card-date-block {
       display: flex;
-      align-items: center;
+      /*   */
       gap: 10px;
     }
 
@@ -654,14 +654,24 @@
     }
 
     .entry-card .card-salary-label {
-      font-size: 10px;
+      font-size: 12px;
       color: var(--text-dim);
       text-transform: uppercase;
       letter-spacing: 0.07em;
       margin-bottom: 6px;
       text-align: left;
       padding-left: 8px;
+      font-weight: 600;
       padding-bottom: 3px;
+    }
+
+    .entry-card .card-salary-amount {
+      font-family: "Archivo", sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--text);
+      margin-top: 6px;
+      text-align: right;
     }
 
     .entry-card .card-middle {
@@ -683,7 +693,7 @@
       flex-shrink: 0;
       width: 42px;
       height: 42px;
-      border-radius: 50%;
+      border-radius: 11px;
       border: 1px solid rgba(242, 183, 5, 0.4);
       background: radial-gradient(circle,
           rgba(242, 183, 5, 0.12),
@@ -1176,6 +1186,10 @@
       salaryToggle.setAttribute("aria-pressed", on);
     });
 
+    // ₹ per delivery — derived from your sheet: Total salary = Total deliveries × 14.
+    // Update this if your rate ever changes.
+    const RATE_PER_DELIVERY = 14;
+
     function formatDateLabel(iso) {
       const [y, m, d] = iso.split("-").map(Number);
       const dt = new Date(y, m - 1, d);
@@ -1284,12 +1298,13 @@
             <div class="card-date-text">
               <div class="month">${parts.month}</div>
               <div class="day">${parts.day}</div>
-              <div class="year">${parts.year}</div>
+              <!-- <div class="year">${parts.year}</div>-->
             </div>
           </div>
           <div class="card-salary-block">
             <div class="card-salary-label">Salary</div>
-            <span class="salary ${isYes ? "yes" : "no"}">${r.salary}</span>
+            <span class="salary ${isYes ? "yes" : "no"}">₹ ${(Number(r.count) || 0) * RATE_PER_DELIVERY} - ${r.salary}</span>
+            <div class="card-salary-amount"></div>
           </div>
         </div>
         <div class="card-middle">
