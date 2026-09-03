@@ -966,6 +966,14 @@
       <h1>Delivery Log</h1>
       <span class="route">
         Flipkart
+        <button type="button" class="admin-btn" id="notifyBtn" title="Enable salary notifications">
+          <svg id="notifyIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+          </svg>
+          <span id="notifyBtnLabel">Notify</span>
+        </button>
         <button type="button" class="admin-btn" id="adminBtn">
           <svg id="adminLockIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
@@ -1073,6 +1081,58 @@
     const adminModalError = document.getElementById("adminModalError");
     const adminModalCancel = document.getElementById("adminModalCancel");
     const adminModalSubmit = document.getElementById("adminModalSubmit");
+
+    const notifyBtn = document.getElementById("notifyBtn");
+    const notifyBtnLabel = document.getElementById("notifyBtnLabel");
+
+    function browserNotificationsSupported() {
+      return "Notification" in window;
+    }
+
+    function applyNotifyUI() {
+      if (!browserNotificationsSupported()) {
+        notifyBtn.style.display = "none";
+        return;
+      }
+      const granted = Notification.permission === "granted";
+      notifyBtn.classList.toggle("unlocked", granted);
+      notifyBtnLabel.textContent = granted ? "Notify on" : "Notify";
+      notifyBtn.title = granted
+        ? "Browser notifications are on for this device"
+        : "Click to enable a pop-up when salary is marked Yes";
+    }
+
+    notifyBtn.addEventListener("click", async () => {
+      if (!browserNotificationsSupported()) return;
+      if (Notification.permission === "granted") {
+        applyNotifyUI();
+        return;
+      }
+      if (Notification.permission === "denied") {
+        alert(
+          "Notifications are blocked for this page in your browser settings. Enable them from the site settings (the icon next to the address bar) to use this.",
+        );
+        return;
+      }
+      await Notification.requestPermission();
+      applyNotifyUI();
+    });
+
+    function notifySalaryReceivedLocally(record) {
+      if (!browserNotificationsSupported()) return;
+      if (Notification.permission !== "granted") return;
+      try {
+        new Notification("Salary received", {
+          body: `${formatDateLabel(record.date)} — ${record.count} deliveries`,
+          icon: "",
+        });
+      } catch (err) {
+        // Some browsers (older Chrome on Android) don't allow the
+        // Notification constructor directly — safe to ignore.
+      }
+    }
+
+    applyNotifyUI();
 
     let editingRow = null;
     let currentRecords = [];
@@ -1500,6 +1560,12 @@
             ? "Entry updated."
             : "Saved to sheet.";
           statusEl.className = "status ok";
+          if (payload.salary) {
+            notifySalaryReceivedLocally({
+              date: payload.date,
+              count: payload.count,
+            });
+          }
           exitEditMode();
         }
       } catch (err) {
