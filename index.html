@@ -111,7 +111,8 @@
       color: var(--text-dim);
       justify-content: space-between;
     }
-    .subrow .subrow-child{
+
+    .subrow .subrow-child {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -139,7 +140,7 @@
 
     .right-mini-stats #prevMonthLabelText {
       width: 100%;
-      font-size: 11px;
+      font-size: 13px;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: var(--yellow);
@@ -530,6 +531,24 @@
       .card-details {
         flex-wrap: wrap;
       }
+
+      .month-group-header {
+        flex-wrap: wrap;
+        row-gap: 6px;
+      }
+
+      .month-group-header .month-name {
+        flex: 1 0 100%;
+      }
+
+      .month-group-header .month-group-right {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .month-group-header .month-total {
+        font-size: 14px;
+      }
     }
 
     .month-group {
@@ -553,11 +572,11 @@
 
     .month-group-header .month-name {
       font-family: "Archivo", sans-serif;
-      font-weight: 700;
+      font-weight: 500;
       font-size: 14px;
       color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
+      text-transform: capitalize;
+      letter-spacing: 0;
     }
 
     .month-group-header .month-total {
@@ -1081,14 +1100,6 @@
       <h1>Delivery Log</h1>
       <span class="route">
         Flipkart
-        <button type="button" class="admin-btn" id="notifyBtn" title="Enable salary notifications">
-          <svg id="notifyIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
-            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
-          </svg>
-          <span id="notifyBtnLabel">Notify</span>
-        </button>
         <button type="button" class="admin-btn" id="adminBtn">
           <svg id="adminLockIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
@@ -1117,16 +1128,21 @@
         <div class="balance-salary">Salary Balance <b id="balance">—</b></div>
       </div>
       <div class="subrow">
-        <div class="subrow-child">
-          <div>Month Total Delivery: <b id="overallTotal">—</b></div>
-          <div>Month Total salary: <b id="totalSalary">—</b></div>
-        </div>
         <div class="right-mini-stats">
-          <span id="prevMonthLabelText">Previous Month</span>
-          <span>Total Delivery: <b id="deliveryCountTotalSalary">—</b></span>
+
+          <span><span id="prevMonthLabelText" style="padding-right: 8px;">Previous Month:</span>Total Delivery: <b
+              id="deliveryCountTotalSalary">—</b></span>
           <span class="salary-status-badge" id="prevMonthSalaryStatus">
-            <svg id="prevMonthSalaryStatusIconPending" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-            <svg id="prevMonthSalaryStatusIconDone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 5-5"/></svg>
+            <svg id="prevMonthSalaryStatusIconPending" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 7v5l3 3" />
+            </svg>
+            <svg id="prevMonthSalaryStatusIconDone" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M8.5 12.5l2.5 2.5 5-5" />
+            </svg>
             <span id="prevMonthSalaryStatusText">—</span>
           </span>
         </div>
@@ -1193,8 +1209,8 @@
     const statusEl = document.getElementById("status");
     const logEl = document.getElementById("log");
     const totalDeliveryEl = document.getElementById("totalDelivery");
-    const overallTotalEl = document.getElementById("overallTotal");
-    const totalSalaryEl = document.getElementById("totalSalary");
+    const overallTotalEl = document.getElementById("overallTotal"); // null now, guarded below
+    const totalSalaryEl = document.getElementById("totalSalary"); // null now, guarded below
     const balanceEl = document.getElementById("balance");
     const prevMonthDeliveryEl = document.getElementById(
       "deliveryCountTotalSalary",
@@ -1224,58 +1240,6 @@
     const adminModalError = document.getElementById("adminModalError");
     const adminModalCancel = document.getElementById("adminModalCancel");
     const adminModalSubmit = document.getElementById("adminModalSubmit");
-
-    const notifyBtn = document.getElementById("notifyBtn");
-    const notifyBtnLabel = document.getElementById("notifyBtnLabel");
-
-    function browserNotificationsSupported() {
-      return "Notification" in window;
-    }
-
-    function applyNotifyUI() {
-      if (!browserNotificationsSupported()) {
-        notifyBtn.style.display = "none";
-        return;
-      }
-      const granted = Notification.permission === "granted";
-      notifyBtn.classList.toggle("unlocked", granted);
-      notifyBtnLabel.textContent = granted ? "Notify on" : "Notify";
-      notifyBtn.title = granted
-        ? "Browser notifications are on for this device"
-        : "Click to enable a pop-up when salary is marked Yes";
-    }
-
-    notifyBtn.addEventListener("click", async () => {
-      if (!browserNotificationsSupported()) return;
-      if (Notification.permission === "granted") {
-        applyNotifyUI();
-        return;
-      }
-      if (Notification.permission === "denied") {
-        alert(
-          "Notifications are blocked for this page in your browser settings. Enable them from the site settings (the icon next to the address bar) to use this.",
-        );
-        return;
-      }
-      await Notification.requestPermission();
-      applyNotifyUI();
-    });
-
-    function notifySalaryReceivedLocally(record) {
-      if (!browserNotificationsSupported()) return;
-      if (Notification.permission !== "granted") return;
-      try {
-        new Notification("Salary received", {
-          body: `${formatDateLabel(record.date)} — ${record.count} deliveries`,
-          icon: "",
-        });
-      } catch (err) {
-        // Some browsers (older Chrome on Android) don't allow the
-        // Notification constructor directly — safe to ignore.
-      }
-    }
-
-    applyNotifyUI();
 
     let editingRow = null;
     let currentRecords = [];
@@ -1502,8 +1466,8 @@
       const currentMonthTotals = totalsForMonth(currentMonthKey);
       const prevMonthTotals = totalsForMonth(prevMonthKey);
 
-      overallTotalEl.textContent = currentMonthTotals.delivery;
-      totalSalaryEl.textContent = currentMonthTotals.salary;
+      if (overallTotalEl) overallTotalEl.textContent = currentMonthTotals.delivery;
+      if (totalSalaryEl) totalSalaryEl.textContent = currentMonthTotals.salary;
 
       prevMonthLabelEl.textContent = monthLabel(prevMonthKey);
       prevMonthDeliveryEl.textContent = prevMonthTotals.delivery;
@@ -1780,12 +1744,6 @@
             ? "Entry updated."
             : "Saved to sheet.";
           statusEl.className = "status ok";
-          if (payload.salary) {
-            notifySalaryReceivedLocally({
-              date: payload.date,
-              count: payload.count,
-            });
-          }
           exitEditMode();
         }
       } catch (err) {
