@@ -109,11 +109,65 @@
       margin-top: 14px;
       font-size: 13px;
       color: var(--text-dim);
+      justify-content: space-between;
+    }
+    .subrow .subrow-child{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px 16px;
     }
 
     .subrow b {
       color: var(--text);
       font-weight: 600;
+    }
+
+    .right-mini-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    .right-mini-stats b {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .right-mini-stats #prevMonthLabelText {
+      width: 100%;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--yellow);
+    }
+
+    .salary-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 10px 2px 6px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .salary-status-badge svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .salary-status-badge.pending {
+      color: #ec4334;
+      background: rgba(236, 67, 52, 0.12);
+    }
+
+    .salary-status-badge.done {
+      color: var(--green);
+      background: rgba(95, 174, 115, 0.15);
     }
 
     .card {
@@ -317,12 +371,10 @@
       border-radius: 30px;
       line-height: normal;
       background-color: #a31717;
-      background-image: linear-gradient(
-        120deg,
-        transparent 25%,
-        rgba(255, 255, 255, 0.55) 45%,
-        transparent 65%
-      );
+      background-image: linear-gradient(120deg,
+          transparent 25%,
+          rgba(255, 255, 255, 0.55) 45%,
+          transparent 65%);
       background-size: 260% 100%;
       background-position: 130% 0%;
       border: 2px solid #ec4334;
@@ -332,10 +384,12 @@
     }
 
     @keyframes salaryReceivedGlow {
+
       0%,
       100% {
         box-shadow: 0 0 0 0 rgba(95, 174, 115, 0.55);
       }
+
       50% {
         box-shadow: 0 0 12px 4px rgba(95, 174, 115, 0.6);
       }
@@ -345,9 +399,11 @@
       0% {
         background-position: 130% 0%;
       }
+
       55% {
         background-position: -30% 0%;
       }
+
       100% {
         background-position: -30% 0%;
       }
@@ -357,15 +413,18 @@
       0% {
         box-shadow: 0 0 0 0 rgba(236, 67, 52, 0.6);
       }
+
       70% {
         box-shadow: 0 0 0 8px rgba(236, 67, 52, 0);
       }
+
       100% {
         box-shadow: 0 0 0 0 rgba(236, 67, 52, 0);
       }
     }
 
     @media (prefers-reduced-motion: reduce) {
+
       .salary.yes,
       .salary.no {
         animation: none;
@@ -1053,12 +1112,24 @@
         <div class="">
           <div class="label">Delivery Count</div>
           <div class="value" id="totalDelivery" style="padding-top: 10px;">—</div>
+
         </div>
         <div class="balance-salary">Salary Balance <b id="balance">—</b></div>
       </div>
       <div class="subrow">
-        <div>Month Total Delivery: <b id="overallTotal">—</b></div>
-        <div>Month Total salary: <b id="totalSalary">—</b></div>
+        <div class="subrow-child">
+          <div>Month Total Delivery: <b id="overallTotal">—</b></div>
+          <div>Month Total salary: <b id="totalSalary">—</b></div>
+        </div>
+        <div class="right-mini-stats">
+          <span id="prevMonthLabelText">Previous Month</span>
+          <span>Total Delivery: <b id="deliveryCountTotalSalary">—</b></span>
+          <span class="salary-status-badge" id="prevMonthSalaryStatus">
+            <svg id="prevMonthSalaryStatusIconPending" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            <svg id="prevMonthSalaryStatusIconDone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 5-5"/></svg>
+            <span id="prevMonthSalaryStatusText">—</span>
+          </span>
+        </div>
       </div>
     </div>
     <div class="card-details" style="display: flex; justify-content: center; gap: 15px;">
@@ -1125,6 +1196,22 @@
     const overallTotalEl = document.getElementById("overallTotal");
     const totalSalaryEl = document.getElementById("totalSalary");
     const balanceEl = document.getElementById("balance");
+    const prevMonthDeliveryEl = document.getElementById(
+      "deliveryCountTotalSalary",
+    );
+    const prevMonthLabelEl = document.getElementById("prevMonthLabelText");
+    const prevMonthStatusBadge = document.getElementById(
+      "prevMonthSalaryStatus",
+    );
+    const prevMonthStatusIconPending = document.getElementById(
+      "prevMonthSalaryStatusIconPending",
+    );
+    const prevMonthStatusIconDone = document.getElementById(
+      "prevMonthSalaryStatusIconDone",
+    );
+    const prevMonthStatusText = document.getElementById(
+      "prevMonthSalaryStatusText",
+    );
     const configWarning = document.getElementById("configWarning");
     const formTitle = document.getElementById("formTitle");
     const editBanner = document.getElementById("editBanner");
@@ -1354,12 +1441,89 @@
         const c = Number(r.count) || 0;
         return isYes ? sum : sum + c;
       }, 0);
-
       totalDeliveryEl.textContent = pendingTotal;
-      overallTotalEl.textContent = totals.totalDelivery ?? "—";
-      totalSalaryEl.textContent =
-        totals.totalSalary != null ? totals.totalSalary : "—";
       balanceEl.textContent = totals.balance != null ? totals.balance : "—";
+
+      // "Current month" (left) is the month of your most recent entry —
+      // not necessarily today's calendar month, so it stays correct even
+      // if you log entries late or add future-dated test data. "Previous
+      // month" (right) is the calendar month right before that one.
+      function todayKey() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      }
+      function latestEntryMonthKey() {
+        let max = null;
+        currentRecords.forEach((r) => {
+          const k = String(r.date).slice(0, 7);
+          if (!max || k > max) max = k;
+        });
+        return max || todayKey();
+      }
+      function shiftMonthKey(key, offset) {
+        const [y, m] = key.split("-").map(Number);
+        const d = new Date(y, m - 1 + offset, 1);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      }
+      function monthLabel(key) {
+        const [y, m] = key.split("-").map(Number);
+        return new Date(y, m - 1, 1).toLocaleDateString("en-IN", {
+          month: "long",
+          year: "numeric",
+        });
+      }
+      function totalsForMonth(key) {
+        const recs = currentRecords.filter(
+          (r) => String(r.date).slice(0, 7) === key,
+        );
+        const delivery = recs.reduce(
+          (sum, r) => sum + (Number(r.count) || 0),
+          0,
+        );
+        const hasEntries = recs.length > 0;
+        const allPaid =
+          hasEntries &&
+          recs.every((r) => String(r.salary).toLowerCase() === "yes");
+        const pendingDelivery = recs.reduce((sum, r) => {
+          const isYes = String(r.salary).toLowerCase() === "yes";
+          return isYes ? sum : sum + (Number(r.count) || 0);
+        }, 0);
+        return {
+          delivery,
+          salary: delivery * RATE_PER_DELIVERY,
+          hasEntries,
+          allPaid,
+          pendingAmount: pendingDelivery * RATE_PER_DELIVERY,
+        };
+      }
+
+      const currentMonthKey = latestEntryMonthKey();
+      const prevMonthKey = shiftMonthKey(currentMonthKey, -1);
+      const currentMonthTotals = totalsForMonth(currentMonthKey);
+      const prevMonthTotals = totalsForMonth(prevMonthKey);
+
+      overallTotalEl.textContent = currentMonthTotals.delivery;
+      totalSalaryEl.textContent = currentMonthTotals.salary;
+
+      prevMonthLabelEl.textContent = monthLabel(prevMonthKey);
+      prevMonthDeliveryEl.textContent = prevMonthTotals.delivery;
+
+      if (!prevMonthTotals.hasEntries) {
+        prevMonthStatusBadge.className = "salary-status-badge";
+        prevMonthStatusIconPending.style.display = "none";
+        prevMonthStatusIconDone.style.display = "none";
+        prevMonthStatusText.textContent = "No data";
+      } else if (prevMonthTotals.allPaid) {
+        prevMonthStatusBadge.className = "salary-status-badge done";
+        prevMonthStatusIconPending.style.display = "none";
+        prevMonthStatusIconDone.style.display = "inline";
+        prevMonthStatusText.textContent = "Salary done";
+      } else {
+        prevMonthStatusBadge.className = "salary-status-badge pending";
+        prevMonthStatusIconPending.style.display = "inline";
+        prevMonthStatusIconDone.style.display = "none";
+        prevMonthStatusText.textContent = `₹${prevMonthTotals.pendingAmount} pending`;
+      }
 
       const records = currentRecords.slice().reverse();
       if (records.length === 0) {
@@ -1447,7 +1611,7 @@
         <div class="month-group-header">
           <span class="month-name">${monthName(group.key)}</span>
           <div class="month-group-right">
-            <span class="month-total">Deliveries: <b>${monthTotal}</b></span>
+            <span class="month-total">Deliveries: <b>${monthTotal}</b> &nbsp;|&nbsp; Total salary: <b>${monthTotal * RATE_PER_DELIVERY}</b></span>
             <div class="carousel-nav">
               <button type="button" class="carousel-prev" aria-label="Scroll left">${ICONS.chevronLeft}</button>
               <button type="button" class="carousel-next" aria-label="Scroll right">${ICONS.chevronRight}</button>
