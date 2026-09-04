@@ -301,20 +301,75 @@
     }
 
     .salary.yes {
+      position: relative;
       background: rgba(95, 174, 115, 1);
       color: white;
       padding: 2px 15px 3px;
       border-radius: 30px;
       line-height: normal;
+      /* animation: salaryReceivedGlow 2.4s ease-in-out infinite; */
     }
 
     .salary.no {
+      position: relative;
       color: white;
       padding: 2px 15px 3px;
       border-radius: 30px;
       line-height: normal;
-      background: #a31717;
+      background-color: #a31717;
+      background-image: linear-gradient(
+        120deg,
+        transparent 25%,
+        rgba(255, 255, 255, 0.55) 45%,
+        transparent 65%
+      );
+      background-size: 260% 100%;
+      background-position: 130% 0%;
       border: 2px solid #ec4334;
+      animation:
+        salaryPendingPulse 1.5s ease-in-out infinite,
+        salaryPendingShine 2.8s ease-in-out infinite;
+    }
+
+    @keyframes salaryReceivedGlow {
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(95, 174, 115, 0.55);
+      }
+      50% {
+        box-shadow: 0 0 12px 4px rgba(95, 174, 115, 0.6);
+      }
+    }
+
+    @keyframes salaryPendingShine {
+      0% {
+        background-position: 130% 0%;
+      }
+      55% {
+        background-position: -30% 0%;
+      }
+      100% {
+        background-position: -30% 0%;
+      }
+    }
+
+    @keyframes salaryPendingPulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(236, 67, 52, 0.6);
+      }
+      70% {
+        box-shadow: 0 0 0 8px rgba(236, 67, 52, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(236, 67, 52, 0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .salary.yes,
+      .salary.no {
+        animation: none;
+      }
     }
 
     .empty {
@@ -440,14 +495,14 @@
     .month-group-header .month-name {
       font-family: "Archivo", sans-serif;
       font-weight: 700;
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text-dim);
       text-transform: uppercase;
       letter-spacing: 0.06em;
     }
 
     .month-group-header .month-total {
-      font-size: 12px;
+      font-size: 16px;
       color: var(--text-dim);
     }
 
@@ -681,6 +736,7 @@
       gap: 10px;
       margin: 20px 0 0;
       flex-wrap: wrap;
+      padding-bottom: 14px;
     }
 
     .entry-card .card-count-block {
@@ -1056,7 +1112,7 @@
   <script>
     // Paste the Web App URL you get from Deploy → New deployment in Apps Script.
     const SCRIPT_URL =
-      "https://script.google.com/macros/s/AKfycbxVBz_V5QIYLIgblJ9cYAlCOTyclEu4cwDl709mE13pVomkETCo893JwKcgOueharBA/exec";
+      "https://script.google.com/macros/s/AKfycbzHwpkev8MZco8Zx4EipB3sTzBmDELVM_yS7aLJlnI9eWWFWKQ66tW5D1KlaEJgjO2V/exec";
 
     const dateInput = document.getElementById("date");
     const countInput = document.getElementById("count");
@@ -1376,7 +1432,7 @@
             <div class="card-count-icon">${ICONS.truck}</div>
             <div>
               <div class="card-count-value">${r.count}</div>
-              <div class="card-count-label">deliveries</div>
+              <div class="card-count-label">Delivery</div>
             </div>
           </div>
           <div class="card-day-pill">${ICONS.calendar}<span>${r.day || ""}</span></div>
@@ -1391,7 +1447,7 @@
         <div class="month-group-header">
           <span class="month-name">${monthName(group.key)}</span>
           <div class="month-group-right">
-            <span class="month-total">Deliveries <b>${monthTotal}</b></span>
+            <span class="month-total">Deliveries: <b>${monthTotal}</b></span>
             <div class="carousel-nav">
               <button type="button" class="carousel-prev" aria-label="Scroll left">${ICONS.chevronLeft}</button>
               <button type="button" class="carousel-next" aria-label="Scroll right">${ICONS.chevronRight}</button>
